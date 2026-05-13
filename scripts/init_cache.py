@@ -40,10 +40,11 @@ DEFAULT_CONFIG = {
     # Percentile cutoffs for tier assignment (applied across all scanned files)
     # top tier1_percentile% -> T1, next band -> T2, remainder -> T3
     # T3 only activates when enough files exist to justify collapsing
-    "tier1_percentile": 25,
+    "tier1_percentile": 30,
     "tier2_percentile": 70,
     "floor_for_t3": 15,      # min total files before any file drops to T3
     "floor_dir_for_t3": 6,   # min files in a dir before that dir collapses to §D
+    "max_t3_fraction": 0.40, # T3 cannot exceed this share of total files; overflow promoted to T2
 }
 
 ALWAYS_SKIP = {
@@ -638,11 +639,14 @@ def compute_percentile_thresholds(scores: dict, cfg: dict) -> tuple:
     return t1_min, t2_min
 
 
-def assign_tiers(files: dict, dep_counts: dict, cfg: dict) -> dict:
+def assign_tiers(files: dict, dep_counts: dict, cfg: dict) -> tuple:
     """
     Score all files, compute percentile thresholds, assign tiers.
-    Returns dict: rel_path -> (data, score, tier)
-    Entry points always get T1 regardless of score.
+    Returns (dict: rel_path -> (data, score, tier), large_project: bool)
+
+    large_project is True when the T3 cap kicked in — meaning the project is
+    large enough that the bottom 40%+ would have been T3 by percentile alone.
+    Callers use this flag to report a 1500-token target instead of 950.
     """
     scores = {
         rel_path: score_file(rel_path, data, dep_counts)
@@ -664,7 +668,20 @@ def assign_tiers(files: dict, dep_counts: dict, cfg: dict) -> dict:
             tier = 3
         result[rel_path] = (data, score, tier)
 
-    return result
+    # T3 cap — promote highest-scoring T3 files to T2 if T3 exceeds max fraction
+    max_t3_frac = cfg.get("max_t3_fraction", 0.40)
+    t3_paths = [r for r, (d, s, t) in result.items() if t == 3]
+    max_t3_count = int(len(result) * max_t3_frac)
+    large_project = len(t3_paths) > max_t3_count
+
+    if large_project:
+        # Sort by score descending — promote the most important ones first
+        t3_paths.sort(key=lambda r: result[r][1], reverse=True)
+        for rel_path in t3_paths[:len(t3_paths) - max_t3_count]:
+            data, score, _ = result[rel_path]
+            result[rel_path] = (data, score, 2)
+
+    return result, large_project
 
 
 def assign_tier_single(rel_path: str, score: int, all_scores: dict, cfg: dict, data: dict = None) -> int:
@@ -871,7 +888,7 @@ def build_dir_group_block(dir_path: str, entries: list, dep_counts: dict) -> tup
 
 # ── Main generation ────────────────────────────────────────────────────────────
 
-def generate_ctx(root: Path, output: Path, cfg: dict) -> str:
+def generate_ctx(root: Path, output: Path, cfg: dict) -> tuple:
     project_name = root.name
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -897,7 +914,7 @@ def generate_ctx(root: Path, output: Path, cfg: dict) -> str:
     dep_counts = build_dep_graph(files)
 
     # ── Pass 2: percentile tier assignment ──────────────────────────────────
-    scored = assign_tiers(files, dep_counts, cfg)
+    scored, large_project = assign_tiers(files, dep_counts, cfg)
 
     # ── Group by directory ────────────────────────────────────────────────────
     by_dir = defaultdict(list)
@@ -956,7 +973,7 @@ def generate_ctx(root: Path, output: Path, cfg: dict) -> str:
 
     ctx_content = "\n\n".join(blocks) + "\n"
     output.write_text(ctx_content, encoding="utf-8")
-    return ctx_content
+    return ctx_content, large_project
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────────
@@ -979,7 +996,7 @@ def main():
     dep_counts = build_dep_graph(files)
 
     if args.show_scores:
-        scored_preview = assign_tiers(files, dep_counts, cfg)
+        scored_preview, _ = assign_tiers(files, dep_counts, cfg)
         scores_map = {r: s for r, (d, s, t) in scored_preview.items()}
         t1_min, t2_min = compute_percentile_thresholds(scores_map, cfg)
         print(f"\n── Importance scores (T1 min={t1_min}, T2 min={t2_min}) ──")
@@ -989,12 +1006,14 @@ def main():
             print(f"  T{tier} score={score:2d}  {rel_path}{marker}")
         print()
 
-    content = generate_ctx(root, output, cfg)
+    content, large_project = generate_ctx(root, output, cfg)
 
+    token_target = "~1500 (large project)" if large_project else "~950"
     print(f"✓ Wrote {output}")
     print(f"  {len(files)} files scanned")
-    print(f"  ~{len(content.split())} word-tokens (rough estimate)")
-    print(f"  Run with --show-scores to see per-file importance scores and tiers")
+    print(f"  ~{len(content.split())} word-tokens (rough estimate) | target {token_target}")
+    if large_project:
+        print(f"  T3 cap triggered — overflow files promoted to T2 to protect signal")
 
 if __name__ == "__main__":
     main()

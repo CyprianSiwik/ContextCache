@@ -1,22 +1,35 @@
 ---
 name: context_cache
 description: >
-  Persistent, compressed project context cache. Use this skill whenever starting
-  a new session in a project, whenever the user says "update the cache", "refresh
-  context", "init cache", or "what does the cache say". Also triggers when the
-  user asks Claude to remember something about the project architecture, mark a
-  todo, or leave a note for next session. Use after any file creation, deletion,
-  or rename to keep the cache current. If a .ctx file exists in the project root
-  or any parent directory, always read it at session start before doing anything
-  else — it is the authoritative project snapshot and replaces the need to re-scan
-  all files from scratch.
+  Persistent, compressed project context cache. Only activate when the user
+  explicitly invokes it — via /context_cache, the callword "CCache", or phrases
+  like "orient around this codebase", "load the cache", "refresh context",
+  "update the cache", "init cache", or "what does the cache say". Also triggers
+  when the user asks Claude to remember something about the project architecture,
+  mark a todo, or leave a note for next session. Use after any file creation,
+  deletion, or rename to keep the cache current. Do NOT auto-activate on session
+  start — wait for explicit invocation.
 ---
 
 # context_cache
 
 A token-efficient, self-updating project context system. One `.ctx` file at the
-project root gives Claude everything it needs to reorient on session start without
-re-reading the entire codebase.
+project root gives Claude a compressed snapshot of the codebase — invoke it when
+you want Claude to orient around the full project rather than work on specific files.
+
+## Callword
+
+Invoke this skill explicitly:
+
+```
+/context_cache
+CCache
+"orient around this codebase"
+"load the cache"
+```
+
+Skip it when you're working on one or two known files — Claude doesn't need the
+cache to fix a specific function or edit a known path.
 
 ## How It Works
 
@@ -28,9 +41,9 @@ re-reading the entire codebase.
 
 ---
 
-## Session Start Protocol
+## On Invocation
 
-**Every session, before doing anything else:**
+When the skill is explicitly called:
 
 1. Look for `.ctx` in the project root (or walk up to find the nearest one).
 2. If found: read it fully. This is your project state. You now know the file
@@ -166,7 +179,7 @@ python scripts/update_cache.py --event git
 
 ## Token Budget Guidance
 
-The goal of `.ctx` is to describe an entire project in **under ~800 tokens**.
+The goal of `.ctx` is to describe an entire project in **under ~950 tokens**.
 Keep this in mind when deciding what to cache:
 
 - **Collapse** directories with more than 10 small utility files into one `§D` block

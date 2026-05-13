@@ -210,7 +210,7 @@ Use these in `§N` blocks for structured searchability:
 
 ## Token Budget
 
-Target: describe your whole project in under **800 tokens**.
+Target: describe your whole project in under **950 tokens**.
 
 - Collapse unchanged dirs with `§D` blocks
 - Skip `migrations/`, fixtures, generated files
