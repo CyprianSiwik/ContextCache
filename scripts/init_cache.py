@@ -189,6 +189,39 @@ def analyze_js_ts(content: str) -> dict:
     }
 
 
+def analyze_swift(content: str) -> dict:
+    exports, functions, imports_ext, state = [], [], [], []
+
+    for m in re.finditer(r'^import\s+(\w+)', content, re.MULTILINE):
+        imports_ext.append(m.group(1))
+
+    # Types: class/struct/enum/protocol/actor — all are navigable exports
+    for m in re.finditer(
+        r'(?:public\s+|open\s+|internal\s+|private\s+|fileprivate\s+)?'
+        r'(?:final\s+)?(?:class|struct|enum|protocol|actor)\s+(\w+)',
+        content
+    ):
+        name = m.group(1)
+        state.append(name)
+        exports.append(name)
+
+    # Functions — skip private/fileprivate, skip underscore-prefixed
+    for m in re.finditer(
+        r'(private|fileprivate)?\s*(?:static\s+|class\s+|override\s+)?func\s+(\w+)',
+        content
+    ):
+        if not m.group(1) and not m.group(2).startswith("_"):
+            functions.append(m.group(2))
+
+    return {
+        "exports": list(dict.fromkeys(exports))[:MAX_LIST_ITEMS],
+        "functions": list(dict.fromkeys(functions))[:MAX_LIST_ITEMS],
+        "imports_int": [],
+        "imports_ext": list(dict.fromkeys(imports_ext))[:MAX_LIST_ITEMS],
+        "state": list(dict.fromkeys(state))[:MAX_LIST_ITEMS],
+    }
+
+
 def analyze_file(path: Path, lang: str) -> dict:
     try:
         content = path.read_text(encoding="utf-8", errors="ignore")
@@ -198,6 +231,8 @@ def analyze_file(path: Path, lang: str) -> dict:
         return analyze_js_ts(content)
     if lang == "py":
         return analyze_python(content)
+    if lang == "swift":
+        return analyze_swift(content)
     return {}
 
 
