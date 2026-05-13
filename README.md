@@ -223,13 +223,20 @@ If `.ctx` exceeds ~150 lines, run `--event full` to recompact.
 
 ## Language Support
 
-Currently analyzes exports, imports, and functions for:
+Fully analyzed (exports, imports, functions, types):
 
 - TypeScript / TSX
-- JavaScript / JSX  
+- JavaScript / JSX
 - Python
+- Swift
+- Go
+- Kotlin
+- Java
+- Ruby
+- Rust
+- C / C++ / H
 
-Other languages (Go, Rust, Ruby, Java) are scanned for line count and path but not deeply analyzed. PRs welcome.
+Other languages are scanned for line count and path only.
 
 ---
 
