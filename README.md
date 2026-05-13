@@ -235,6 +235,8 @@ Fully analyzed (exports, imports, functions, types):
 - Ruby
 - Rust
 - C / C++ / H
+- CSS / SCSS (custom properties, mixins, imports)
+- HTML (title, script/stylesheet deps)
 
 Other languages are scanned for line count and path only.
 

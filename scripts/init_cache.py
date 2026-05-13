@@ -374,6 +374,57 @@ def analyze_c(content: str) -> dict:
     }
 
 
+def analyze_css(content: str) -> dict:
+    exports, imports_int, imports_ext = [], [], []
+
+    # @import / @use / @forward (plain CSS and SCSS module system)
+    for m in re.finditer(r'@(?:import|use|forward)\s+["\']([^"\']+)["\']', content):
+        src = m.group(1)
+        if src.startswith("."):
+            imports_int.append(src)
+        else:
+            imports_ext.append(src.split("/")[0])
+
+    # SCSS mixins — reusable style blocks worth knowing about
+    for m in re.finditer(r'@mixin\s+([\w-]+)', content):
+        exports.append(m.group(1))
+
+    # CSS custom properties (design tokens) — cap aggressively, they can be numerous
+    for m in re.finditer(r'(--[\w-]+)\s*:', content):
+        exports.append(m.group(1))
+
+    return {
+        "exports": list(dict.fromkeys(exports))[:MAX_LIST_ITEMS],
+        "functions": [],
+        "imports_int": list(dict.fromkeys(imports_int))[:MAX_LIST_ITEMS],
+        "imports_ext": list(dict.fromkeys(imports_ext))[:MAX_LIST_ITEMS],
+        "state": [],
+    }
+
+
+def analyze_html(content: str) -> dict:
+    imports_ext, exports = [], []
+
+    # External scripts and stylesheets — dependency signal
+    for m in re.finditer(r'<script[^>]+src=["\']([^"\']+)["\']', content, re.IGNORECASE):
+        imports_ext.append(m.group(1).split("/")[-1])
+    for m in re.finditer(r'<link[^>]+href=["\']([^"\']+\.css)["\']', content, re.IGNORECASE):
+        imports_ext.append(m.group(1).split("/")[-1])
+
+    # Page title — useful for MPA navigation
+    title = re.search(r'<title>([^<]+)</title>', content, re.IGNORECASE)
+    if title:
+        exports.append(title.group(1).strip())
+
+    return {
+        "exports": list(dict.fromkeys(exports))[:MAX_LIST_ITEMS],
+        "functions": [],
+        "imports_int": [],
+        "imports_ext": list(dict.fromkeys(imports_ext))[:MAX_LIST_ITEMS],
+        "state": [],
+    }
+
+
 def analyze_swift(content: str) -> dict:
     exports, functions, imports_ext, state = [], [], [], []
 
@@ -430,6 +481,10 @@ def analyze_file(path: Path, lang: str) -> dict:
         return analyze_rust(content)
     if lang in ("c", "cpp", "h"):
         return analyze_c(content)
+    if lang in ("css", "scss"):
+        return analyze_css(content)
+    if lang == "html":
+        return analyze_html(content)
     return {}
 
 
