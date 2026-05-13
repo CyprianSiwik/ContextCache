@@ -43,6 +43,11 @@ re-reading the entire codebase.
    > "Loaded context cache — `my-api`, branch `feature/auth`, 23 files indexed,
    > 2 open notes. Ready."
 
+   **DO NOT output a summary or breakdown of the codebase after reading the cache.**
+   The one-line confirmation above is sufficient. Only expand beyond it if the user
+   explicitly asks for a summary, or if something in the cache is critically unclear
+   and you cannot proceed without clarification.
+
 ---
 
 ## Auto-Update Protocol
