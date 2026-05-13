@@ -21,15 +21,21 @@ The cache updates itself automatically as you work. Add a file? Cache updates. D
 ## Quick Start
 
 ```bash
-# Clone the skill
+# Clone once, anywhere on your machine
 git clone https://github.com/CyprianSiwik/ContextCache
 
-# Generate your first .ctx from a project root
+# Run the installer from your project root
 cd your-project
-python path/to/context_cache/scripts/init_cache.py .
+python3 /path/to/ContextCache/install.py
 ```
 
-That's it. You'll see a `.ctx` file in your project root. Commit it or gitignore it — either works.
+That's it. The installer:
+- generates the `.ctx` snapshot
+- registers the skill in `CLAUDE.md`
+- adds `CLAUDE.md` to `.gitignore` (the path is machine-specific)
+- installs Claude Code hooks for auto-updates
+
+Next time you open Claude in this project it reads the cache automatically.
 
 ---
 
