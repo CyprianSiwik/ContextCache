@@ -81,12 +81,12 @@ def main():
 
     # ── Done ──────────────────────────────────────────────────────────────────
     print()
-    print(f"✓ context_cache is ready.")
+    print(f"✓ ccache is ready.")
     print(f"  .ctx           — project snapshot ({project_dir / '.ctx'})")
     print(f"  CLAUDE.md      — skill registered (gitignored)")
     print(f"  hooks          — auto-update on write/edit/delete/commit")
     print()
-    print("Next session Claude will load the cache automatically.")
+    print("Use /ccache to orient Claude around this project.")
     print("To update manually: python3 scripts/update_cache.py --event full")
 
 
