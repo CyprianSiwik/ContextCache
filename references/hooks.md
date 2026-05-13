@@ -9,7 +9,7 @@ Once installed, the cache updates itself — no manual `update_cache.py` calls n
 
 ```bash
 # From your project root (after running init_cache.py)
-python path/to/context_cache/scripts/install_hooks.py --project-dir .
+python path/to/ccache/scripts/install_hooks.py --project-dir .
 ```
 
 This writes three hook entries into `~/.claude/settings.json` and backs up the
@@ -66,7 +66,7 @@ python scripts/install_hooks.py --project-dir ~/code/project-a
 python scripts/install_hooks.py --project-dir ~/code/project-b
 ```
 
-Each hook entry has a unique ID (`context_cache_write`, `context_cache_bash`,
+Each hook entry has a unique ID (`ccache_write`, `ccache_bash`,
 etc.) — re-running install for the same project replaces existing entries
 rather than duplicating them.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-install.py — One-shot context_cache setup for a project.
+install.py — One-shot ccache setup for a project.
 
 Usage:
     python3 /path/to/ContextCache/install.py                 # sets up current directory
@@ -26,7 +26,7 @@ def main():
         print(f"ERROR: not a directory: {project_dir}")
         sys.exit(1)
 
-    print(f"Installing context_cache for: {project_dir.name}")
+    print(f"Installing ccache for: {project_dir.name}")
     print()
 
     # ── 1. Generate .ctx ──────────────────────────────────────────────────────

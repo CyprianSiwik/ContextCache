@@ -11,7 +11,7 @@ description: >
   explicit invocation.
 ---
 
-# context_cache
+# ccache
 
 A token-efficient, self-updating project context system. One `.ctx` file at the
 project root gives Claude a compressed snapshot of the codebase — invoke it when
@@ -113,11 +113,11 @@ For the full spec (relationship operators, compression rules, §N tag meanings,
 
 ## Initializing a New Project
 
-When the user wants to set up context_cache on a project:
+When the user wants to set up ccache on a project:
 
 ```bash
 # From the project root:
-python path/to/context_cache/scripts/init_cache.py .
+python path/to/ccache/scripts/init_cache.py .
 
 # Or with options:
 python scripts/init_cache.py . --output .ctx --config .ctxconfig
@@ -198,7 +198,7 @@ This skill is designed to be published as a standalone GitHub repository.
 The recommended repo layout:
 
 ```
-context_cache/
+ccache/
 ├── SKILL.md
 ├── README.md          ← user-facing install/usage guide
 ├── scripts/

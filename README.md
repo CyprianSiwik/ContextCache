@@ -1,8 +1,8 @@
-# context_cache
+# ccache
 
 > A token-efficient, self-updating project context system for Claude agents.
 
-Stop burning tokens every session reacclimating Claude to your codebase. `context_cache` maintains a compressed `.ctx` snapshot of your project that Claude reads in seconds at session start — instead of re-reading dozens of files.
+Stop burning tokens every session reacclimating Claude to your codebase. `ccache` maintains a compressed `.ctx` snapshot of your project that Claude reads in seconds at session start — instead of re-reading dozens of files.
 
 ---
 
@@ -103,7 +103,7 @@ Install once, updates forever. Hooks fire on every write, edit, delete, rename, 
 
 ```bash
 # From your project root (after init_cache.py)
-python path/to/context_cache/scripts/install_hooks.py --project-dir .
+python path/to/ccache/scripts/install_hooks.py --project-dir .
 
 # To uninstall
 python scripts/install_hooks.py --uninstall
