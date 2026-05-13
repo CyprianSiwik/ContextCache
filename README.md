@@ -12,7 +12,7 @@ Every time you spin up a Claude agent on a large project, it has to rediscover e
 
 ## The Solution
 
-A single `.ctx` file at your project root. It uses a compact shorthand format to encode your entire project's structure — file tree, exports, imports, dependencies, git state, and persistent notes — in under 800 tokens. Claude reads it once at session start and immediately knows where everything is.
+A single `.ctx` file at your project root. It uses a compact shorthand format to encode your entire project's structure — file tree, exports, imports, dependencies, git state, and persistent notes — in under 950 tokens. Claude reads it on demand and immediately knows where everything is.
 
 The cache updates itself automatically as you work. Add a file? Cache updates. Delete one? Cache updates. Learn something important about the architecture? Leave a note in the cache for next session.
 
@@ -35,7 +35,7 @@ That's it. The installer:
 - adds `CLAUDE.md` to `.gitignore` (the path is machine-specific)
 - installs Claude Code hooks for auto-updates
 
-Next time you open Claude in this project it reads the cache automatically.
+Then invoke it any time with `/ccache` in Claude Code, or say "orient around this codebase" / "load the cache". Skip it when you're only touching one or two known files — you don't need the overhead.
 
 ---
 

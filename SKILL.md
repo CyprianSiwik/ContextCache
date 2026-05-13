@@ -1,14 +1,14 @@
 ---
-name: context_cache
+name: ccache
 description: >
   Persistent, compressed project context cache. Only activate when the user
-  explicitly invokes it — via /context_cache, the callword "CCache", or phrases
-  like "orient around this codebase", "load the cache", "refresh context",
-  "update the cache", "init cache", or "what does the cache say". Also triggers
-  when the user asks Claude to remember something about the project architecture,
-  mark a todo, or leave a note for next session. Use after any file creation,
-  deletion, or rename to keep the cache current. Do NOT auto-activate on session
-  start — wait for explicit invocation.
+  explicitly invokes it — via /ccache, or phrases like "orient around this
+  codebase", "load the cache", "refresh context", "update the cache", "init
+  cache", or "what does the cache say". Also triggers when the user asks Claude
+  to remember something about the project architecture, mark a todo, or leave a
+  note for next session. Use after any file creation, deletion, or rename to
+  keep the cache current. Do NOT auto-activate on session start — wait for
+  explicit invocation.
 ---
 
 # context_cache
@@ -22,8 +22,7 @@ you want Claude to orient around the full project rather than work on specific f
 Invoke this skill explicitly:
 
 ```
-/context_cache
-CCache
+/ccache
 "orient around this codebase"
 "load the cache"
 ```
