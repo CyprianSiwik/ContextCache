@@ -41,7 +41,7 @@ def main():
     # ── 2. Register skill in CLAUDE.md ────────────────────────────────────────
     print("2/4  Registering skill in CLAUDE.md...")
     skill_path = cache_root / "SKILL.md"
-    skill_line = f"Skill: {skill_path}\n"
+    skill_line = f"@{skill_path}\n"
     claude_md  = project_dir / "CLAUDE.md"
 
     if claude_md.exists():
