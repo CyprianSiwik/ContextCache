@@ -207,7 +207,7 @@ def build_updated_file_block(root: Path, rel_path: str, ctx_content: str = "") -
         }
 
     # Score all files so percentile thresholds are accurate
-    scored = assign_tiers(files, dep_counts, cfg)
+    scored, _ = assign_tiers(files, dep_counts, cfg)
     data, score, tier = scored.get(rel_path, (files[rel_path], 0, 2))
 
     if tier == 1:
@@ -271,7 +271,7 @@ def main():
         sys.path.insert(0, str(Path(__file__).parent))
         from init_cache import load_config, generate_ctx
         cfg = load_config(root)
-        generate_ctx(root, ctx_path, cfg)
+        generate_ctx(root, ctx_path, cfg)  # returns (content, large_project) — intentionally ignored
         print(f"✓ Full re-init complete: {ctx_path}")
         return
 
