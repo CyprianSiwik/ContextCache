@@ -189,6 +189,190 @@ def analyze_js_ts(content: str) -> dict:
     }
 
 
+def analyze_go(content: str) -> dict:
+    exports, functions, imports_ext, state = [], [], [], []
+
+    # Single and block imports
+    block = re.search(r'import\s+\(([^)]+)\)', content, re.DOTALL)
+    if block:
+        for m in re.finditer(r'"([^"]+)"', block.group(1)):
+            imports_ext.append(m.group(1).split("/")[-1])
+    for m in re.finditer(r'^import\s+"([^"]+)"', content, re.MULTILINE):
+        imports_ext.append(m.group(1).split("/")[-1])
+
+    # Types — exported if uppercase
+    for m in re.finditer(r'^type\s+(\w+)\s+(?:struct|interface)', content, re.MULTILINE):
+        name = m.group(1)
+        state.append(name)
+        if name[0].isupper():
+            exports.append(name)
+
+    # Functions — exported if uppercase
+    for m in re.finditer(r'^func\s+(?:\([^)]+\)\s+)?(\w+)\s*\(', content, re.MULTILINE):
+        name = m.group(1)
+        functions.append(name)
+        if name[0].isupper():
+            exports.append(name)
+
+    return {
+        "exports": list(dict.fromkeys(exports))[:MAX_LIST_ITEMS],
+        "functions": list(dict.fromkeys(functions))[:MAX_LIST_ITEMS],
+        "imports_int": [],
+        "imports_ext": list(dict.fromkeys(imports_ext))[:MAX_LIST_ITEMS],
+        "state": list(dict.fromkeys(state))[:MAX_LIST_ITEMS],
+    }
+
+
+def analyze_kotlin(content: str) -> dict:
+    exports, functions, imports_ext, state = [], [], [], []
+
+    for m in re.finditer(r'^import\s+([\w.]+)', content, re.MULTILINE):
+        imports_ext.append(m.group(1).split(".")[-1])
+
+    for m in re.finditer(
+        r'(?:private\s+|internal\s+|protected\s+)?'
+        r'(?:data\s+|sealed\s+|abstract\s+|open\s+)?'
+        r'(?:class|object|interface|enum\s+class)\s+(\w+)',
+        content
+    ):
+        name = m.group(1)
+        state.append(name)
+        exports.append(name)
+
+    for m in re.finditer(r'(private\s+|protected\s+)?(?:suspend\s+)?fun\s+(\w+)', content):
+        if not m.group(1) and not m.group(2).startswith("_"):
+            functions.append(m.group(2))
+
+    return {
+        "exports": list(dict.fromkeys(exports))[:MAX_LIST_ITEMS],
+        "functions": list(dict.fromkeys(functions))[:MAX_LIST_ITEMS],
+        "imports_int": [],
+        "imports_ext": list(dict.fromkeys(imports_ext))[:MAX_LIST_ITEMS],
+        "state": list(dict.fromkeys(state))[:MAX_LIST_ITEMS],
+    }
+
+
+def analyze_java(content: str) -> dict:
+    exports, functions, imports_ext, state = [], [], [], []
+
+    for m in re.finditer(r'^import\s+(?:static\s+)?([\w.]+);', content, re.MULTILINE):
+        parts = m.group(1).split(".")
+        imports_ext.append(parts[-2] if len(parts) >= 2 else parts[-1])
+
+    for m in re.finditer(
+        r'(?:public\s+|protected\s+)?(?:abstract\s+|final\s+)?'
+        r'(?:class|interface|enum|record)\s+(\w+)',
+        content
+    ):
+        name = m.group(1)
+        state.append(name)
+        exports.append(name)
+
+    for m in re.finditer(
+        r'public\s+(?:static\s+)?(?:final\s+)?(?:[\w<>\[\]]+)\s+(\w+)\s*\(',
+        content
+    ):
+        name = m.group(1)
+        if name not in ("class", "interface", "enum", "record"):
+            functions.append(name)
+
+    return {
+        "exports": list(dict.fromkeys(exports))[:MAX_LIST_ITEMS],
+        "functions": list(dict.fromkeys(functions))[:MAX_LIST_ITEMS],
+        "imports_int": [],
+        "imports_ext": list(dict.fromkeys(imports_ext))[:MAX_LIST_ITEMS],
+        "state": list(dict.fromkeys(state))[:MAX_LIST_ITEMS],
+    }
+
+
+def analyze_ruby(content: str) -> dict:
+    exports, functions, imports_int, imports_ext, state = [], [], [], [], []
+
+    for m in re.finditer(r"^require_relative\s+['\"]([^'\"]+)['\"]", content, re.MULTILINE):
+        imports_int.append(m.group(1))
+    for m in re.finditer(r"^require\s+['\"]([^'\"]+)['\"]", content, re.MULTILINE):
+        imports_ext.append(m.group(1))
+
+    for m in re.finditer(r'^(?:class|module)\s+(\w+)', content, re.MULTILINE):
+        name = m.group(1)
+        state.append(name)
+        exports.append(name)
+
+    for m in re.finditer(r'^\s+def\s+(?:self\.)?(\w+)', content, re.MULTILINE):
+        name = m.group(1)
+        if not name.startswith("_"):
+            functions.append(name)
+
+    return {
+        "exports": list(dict.fromkeys(exports))[:MAX_LIST_ITEMS],
+        "functions": list(dict.fromkeys(functions))[:MAX_LIST_ITEMS],
+        "imports_int": list(dict.fromkeys(imports_int))[:MAX_LIST_ITEMS],
+        "imports_ext": list(dict.fromkeys(imports_ext))[:MAX_LIST_ITEMS],
+        "state": list(dict.fromkeys(state))[:MAX_LIST_ITEMS],
+    }
+
+
+def analyze_rust(content: str) -> dict:
+    exports, functions, imports_ext, state = [], [], [], []
+
+    for m in re.finditer(r'^use\s+([\w:]+)', content, re.MULTILINE):
+        root = m.group(1).split("::")[0]
+        if root not in ("crate", "super", "self"):
+            imports_ext.append(root)
+
+    for m in re.finditer(
+        r'(?:pub\s+)?(?:struct|enum|trait|type|union)\s+(\w+)', content
+    ):
+        name = m.group(1)
+        state.append(name)
+    for m in re.finditer(r'pub\s+(?:struct|enum|trait|type|union)\s+(\w+)', content):
+        exports.append(m.group(1))
+
+    for m in re.finditer(r'(?:pub\s+)?(?:async\s+)?fn\s+(\w+)', content):
+        name = m.group(1)
+        if not name.startswith("_"):
+            functions.append(name)
+    for m in re.finditer(r'pub\s+(?:async\s+)?fn\s+(\w+)', content):
+        exports.append(m.group(1))
+
+    return {
+        "exports": list(dict.fromkeys(exports))[:MAX_LIST_ITEMS],
+        "functions": list(dict.fromkeys(functions))[:MAX_LIST_ITEMS],
+        "imports_int": [],
+        "imports_ext": list(dict.fromkeys(imports_ext))[:MAX_LIST_ITEMS],
+        "state": list(dict.fromkeys(state))[:MAX_LIST_ITEMS],
+    }
+
+
+def analyze_c(content: str) -> dict:
+    functions, imports_ext, state = [], [], []
+
+    for m in re.finditer(r'^#include\s+[<"]([^>"]+)[>"]', content, re.MULTILINE):
+        header = m.group(1).split("/")[-1].removesuffix(".h")
+        imports_ext.append(header)
+
+    for m in re.finditer(r'(?:class|struct|enum)\s+(\w+)', content):
+        state.append(m.group(1))
+
+    # Function definitions: type name(...) { — exclude control flow keywords
+    _CF = {"if", "for", "while", "switch", "do"}
+    for m in re.finditer(
+        r'^(?:[\w:*&<>\s]+)\s+(\w+)\s*\([^;]*\)\s*(?:const\s*)?\{',
+        content, re.MULTILINE
+    ):
+        name = m.group(1)
+        if name not in _CF and not name.startswith("_"):
+            functions.append(name)
+
+    return {
+        "exports": list(dict.fromkeys(state))[:MAX_LIST_ITEMS],
+        "functions": list(dict.fromkeys(functions))[:MAX_LIST_ITEMS],
+        "imports_int": [],
+        "imports_ext": list(dict.fromkeys(imports_ext))[:MAX_LIST_ITEMS],
+        "state": list(dict.fromkeys(state))[:MAX_LIST_ITEMS],
+    }
+
+
 def analyze_swift(content: str) -> dict:
     exports, functions, imports_ext, state = [], [], [], []
 
@@ -233,6 +417,18 @@ def analyze_file(path: Path, lang: str) -> dict:
         return analyze_python(content)
     if lang == "swift":
         return analyze_swift(content)
+    if lang == "go":
+        return analyze_go(content)
+    if lang in ("kt",):
+        return analyze_kotlin(content)
+    if lang == "java":
+        return analyze_java(content)
+    if lang == "rb":
+        return analyze_ruby(content)
+    if lang == "rs":
+        return analyze_rust(content)
+    if lang in ("c", "cpp", "h"):
+        return analyze_c(content)
     return {}
 
 
