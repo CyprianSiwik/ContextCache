@@ -9,7 +9,7 @@ Usage:
 This adds PostToolUse hooks to Claude Code that automatically update .ctx
 when files are created, edited, deleted, renamed, or committed.
 
-Safe to run multiple times — checks for existing entries before adding.
+Safe to run multiple times — re-running replaces existing entries.
 """
 
 import json
@@ -18,8 +18,6 @@ import sys
 import argparse
 import shutil
 from pathlib import Path
-
-HOOK_ID = "context_cache"
 
 def get_settings_path() -> Path:
     return Path.home() / ".claude" / "settings.json"
@@ -34,45 +32,25 @@ def load_settings(path: Path) -> dict:
 
 def save_settings(path: Path, settings: dict):
     path.parent.mkdir(parents=True, exist_ok=True)
-    # Backup first
     if path.exists():
         shutil.copy(path, path.with_suffix(".json.bak"))
     path.write_text(json.dumps(settings, indent=2))
 
-def build_hook_entries(hook_script: Path, project_dir: Path) -> list:
+def is_ctx_matcher(matcher: dict, hook_script: Path) -> bool:
+    script_str = str(hook_script)
+    return any(script_str in h.get("command", "") for h in matcher.get("hooks", []))
+
+def build_hook_matchers(hook_script: Path, project_dir: Path) -> list:
     """
-    Build the hook entries for Claude Code's settings.json.
-    Each entry runs ctx_hook.sh with the right env vars set.
+    Build PostToolUse matcher entries for Claude Code's settings.json hooks object.
+    Format: hooks.PostToolUse = [ { matcher, hooks: [{type, command}] }, ... ]
     """
-    hook_cmd = (
-        f'CLAUDE_TOOL_NAME="$CLAUDE_TOOL_NAME" '
-        f'CLAUDE_TOOL_INPUT="$CLAUDE_TOOL_INPUT" '
-        f'CLAUDE_PROJECT_DIR="{project_dir}" '
-        f'bash "{hook_script}"'
-    )
+    hook_cmd = f'CLAUDE_PROJECT_DIR="{project_dir}" bash "{hook_script}"'
 
     return [
-        {
-            "id": f"{HOOK_ID}_write",
-            "description": "context_cache: update .ctx on file write/edit",
-            "event": "PostToolUse",
-            "tool": "Write",
-            "command": hook_cmd,
-        },
-        {
-            "id": f"{HOOK_ID}_edit",
-            "description": "context_cache: update .ctx on file edit",
-            "event": "PostToolUse",
-            "tool": "Edit",
-            "command": hook_cmd,
-        },
-        {
-            "id": f"{HOOK_ID}_bash",
-            "description": "context_cache: update .ctx on rm/mv/git commit",
-            "event": "PostToolUse",
-            "tool": "Bash",
-            "command": hook_cmd,
-        },
+        {"matcher": "Write", "hooks": [{"type": "command", "command": hook_cmd}]},
+        {"matcher": "Edit",  "hooks": [{"type": "command", "command": hook_cmd}]},
+        {"matcher": "Bash",  "hooks": [{"type": "command", "command": hook_cmd}]},
     ]
 
 def install(project_dir: Path):
@@ -83,23 +61,25 @@ def install(project_dir: Path):
         print(f"ERROR: hook script not found at {hook_script}")
         sys.exit(1)
 
-    settings = load_settings(settings_path)
-    hooks    = settings.setdefault("hooks", [])
+    settings   = load_settings(settings_path)
+    hooks_obj  = settings.setdefault("hooks", {})
+    # Migrate from old array format if needed
+    if isinstance(hooks_obj, list):
+        hooks_obj = {}
+    post_tool  = hooks_obj.setdefault("PostToolUse", [])
 
-    # Remove any existing context_cache hooks (clean reinstall)
-    existing_ids = {f"{HOOK_ID}_write", f"{HOOK_ID}_edit", f"{HOOK_ID}_bash"}
-    hooks[:] = [h for h in hooks if h.get("id") not in existing_ids]
+    # Remove existing context_cache matchers for this project (clean reinstall)
+    post_tool[:] = [m for m in post_tool if not is_ctx_matcher(m, hook_script)]
 
-    # Add new entries
-    new_entries = build_hook_entries(hook_script, project_dir)
-    hooks.extend(new_entries)
-    settings["hooks"] = hooks
+    new_matchers = build_hook_matchers(hook_script, project_dir)
+    post_tool.extend(new_matchers)
+    hooks_obj["PostToolUse"] = post_tool
+    settings["hooks"] = hooks_obj
 
     save_settings(settings_path, settings)
     print(f"✓ Installed context_cache hooks into {settings_path}")
     print(f"  Project dir : {project_dir}")
     print(f"  Hook script : {hook_script}")
-    print(f"  Hooks added : {', '.join(e['tool'] for e in new_entries)}")
     print(f"  Backup saved: {settings_path.with_suffix('.json.bak')}")
     print()
     print("  Hooks will fire automatically on:")
@@ -112,19 +92,25 @@ def install(project_dir: Path):
 
 def uninstall():
     settings_path = get_settings_path()
-    settings = load_settings(settings_path)
-    hooks = settings.get("hooks", [])
+    hook_script   = (Path(__file__).parent.parent / "hooks" / "ctx_hook.sh").resolve()
+    settings      = load_settings(settings_path)
+    hooks_obj     = settings.get("hooks", {})
 
-    existing_ids = {f"{HOOK_ID}_write", f"{HOOK_ID}_edit", f"{HOOK_ID}_bash"}
-    before = len(hooks)
-    hooks[:] = [h for h in hooks if h.get("id") not in existing_ids]
-    removed = before - len(hooks)
+    if isinstance(hooks_obj, list):
+        print("No context_cache hooks found — nothing to uninstall.")
+        return
+
+    post_tool = hooks_obj.get("PostToolUse", [])
+    before    = len(post_tool)
+    post_tool[:] = [m for m in post_tool if not is_ctx_matcher(m, hook_script)]
+    removed   = before - len(post_tool)
 
     if removed == 0:
         print("No context_cache hooks found — nothing to uninstall.")
         return
 
-    settings["hooks"] = hooks
+    hooks_obj["PostToolUse"] = post_tool
+    settings["hooks"] = hooks_obj
     save_settings(settings_path, settings)
     print(f"✓ Removed {removed} context_cache hook(s) from {settings_path}")
 
