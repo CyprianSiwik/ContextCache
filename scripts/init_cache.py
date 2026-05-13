@@ -49,6 +49,7 @@ DEFAULT_CONFIG = {
 ALWAYS_SKIP = {
     "dist", "build", ".next", "__pycache__", ".git", "node_modules",
     ".turbo", ".vercel", "coverage", ".cache", "out", ".svelte-kit",
+    ".claude",
 }
 
 SKIP_EXTENSIONS = {".lock", ".map", ".min.js", ".min.css", ".pyc"}
@@ -254,6 +255,20 @@ def is_entry_point(rel_path: str) -> bool:
     return filename in ENTRY_POINT_NAMES
 
 
+TRIVIAL_ENTRY_THRESHOLD = 5
+
+def is_trivial_entry_point(rel_path: str, data: dict) -> bool:
+    """Entry point with no meaningful content — collapses to T3 so it folds into its §D group."""
+    if not is_entry_point(rel_path):
+        return False
+    analysis = data["analysis"]
+    return (
+        data["line_count"] <= TRIVIAL_ENTRY_THRESHOLD
+        and not analysis.get("exports")
+        and not analysis.get("functions")
+    )
+
+
 # ── Pass 1: Scan ───────────────────────────────────────────────────────────────
 
 def scan_project(root: Path, cfg: dict) -> dict:
@@ -268,7 +283,10 @@ def scan_project(root: Path, cfg: dict) -> dict:
         dp = Path(dirpath)
         rel_dir = dp.relative_to(root)
 
-        dirnames[:] = [d for d in dirnames if d not in ALWAYS_SKIP]
+        dirnames[:] = [
+            d for d in dirnames
+            if d not in ALWAYS_SKIP and not (dp / d / "SKILL.md").exists()
+        ]
         if include_dirs and rel_dir == Path("."):
             dirnames[:] = [d for d in dirnames if d in include_dirs]
 
@@ -405,7 +423,7 @@ def assign_tiers(files: dict, dep_counts: dict, cfg: dict) -> dict:
     result = {}
     for rel_path, data in files.items():
         score = scores[rel_path]
-        if is_entry_point(rel_path):
+        if is_entry_point(rel_path) and not is_trivial_entry_point(rel_path, data):
             tier = 1
         elif score >= t1_min:
             tier = 1
@@ -418,12 +436,12 @@ def assign_tiers(files: dict, dep_counts: dict, cfg: dict) -> dict:
     return result
 
 
-def assign_tier_single(rel_path: str, score: int, all_scores: dict, cfg: dict) -> int:
+def assign_tier_single(rel_path: str, score: int, all_scores: dict, cfg: dict, data: dict = None) -> int:
     """
     Assign a tier for a single file given the full score map.
     Used by update_cache when rescoring after a write event.
     """
-    if is_entry_point(rel_path):
+    if is_entry_point(rel_path) and not (data and is_trivial_entry_point(rel_path, data)):
         return 1
     t1_min, t2_min = compute_percentile_thresholds(all_scores, cfg)
     if score >= t1_min:
