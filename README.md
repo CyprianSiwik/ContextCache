@@ -22,7 +22,7 @@ The cache updates itself automatically as you work. Add a file? Cache updates. D
 
 ```bash
 # Clone the skill
-git clone https://github.com/yourusername/context_cache
+git clone https://github.com/CyprianSiwik/ContextCache
 
 # Generate your first .ctx from a project root
 cd your-project
