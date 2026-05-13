@@ -163,13 +163,26 @@ All fields are optional. Without a config, the scanner uses sensible defaults an
 
 ## Using as a Claude Skill
 
-If you're using Claude Code with skills support, point it at this directory:
+After cloning, register the skill in your project's `CLAUDE.md`:
+
+```bash
+# From your project root:
+echo "Skill: /path/to/ContextCache/SKILL.md" >> CLAUDE.md
+```
+
+Replace `/path/to/ContextCache` with wherever you cloned this repo. For example:
 
 ```
-/path/to/context_cache/SKILL.md
+Skill: /Users/yourname/tools/ContextCache/SKILL.md
 ```
 
-Claude will automatically read `.ctx` at session start, update it after file operations, and add notes when it learns something worth preserving.
+Then add `CLAUDE.md` to your `.gitignore` — the path is machine-specific and will break for collaborators:
+
+```
+echo "CLAUDE.md" >> .gitignore
+```
+
+Once registered, Claude will automatically read `.ctx` at session start, update it after file operations, and add notes when it learns something worth preserving. Each teammate registers their own local path.
 
 ---
 
