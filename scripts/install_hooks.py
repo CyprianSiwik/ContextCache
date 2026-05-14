@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-install_hooks.py — Install ccache hooks into ~/.claude/settings.json
+install_hooks.py — Install ctxc hooks into ~/.claude/settings.json
 
 Usage:
     python scripts/install_hooks.py [--project-dir /path/to/project]
@@ -68,7 +68,7 @@ def install(project_dir: Path):
         hooks_obj = {}
     post_tool  = hooks_obj.setdefault("PostToolUse", [])
 
-    # Remove existing ccache matchers for this project (clean reinstall)
+    # Remove existing ctxc matchers for this project (clean reinstall)
     post_tool[:] = [m for m in post_tool if not is_ctx_matcher(m, hook_script)]
 
     new_matchers = build_hook_matchers(hook_script, project_dir)
@@ -77,7 +77,7 @@ def install(project_dir: Path):
     settings["hooks"] = hooks_obj
 
     save_settings(settings_path, settings)
-    print(f"✓ Installed ccache hooks into {settings_path}")
+    print(f"✓ Installed ctxc hooks into {settings_path}")
     print(f"  Project dir : {project_dir}")
     print(f"  Hook script : {hook_script}")
     print(f"  Backup saved: {settings_path.with_suffix('.json.bak')}")
@@ -97,7 +97,7 @@ def uninstall():
     hooks_obj     = settings.get("hooks", {})
 
     if isinstance(hooks_obj, list):
-        print("No ccache hooks found — nothing to uninstall.")
+        print("No ctxc hooks found — nothing to uninstall.")
         return
 
     post_tool = hooks_obj.get("PostToolUse", [])
@@ -106,16 +106,16 @@ def uninstall():
     removed   = before - len(post_tool)
 
     if removed == 0:
-        print("No ccache hooks found — nothing to uninstall.")
+        print("No ctxc hooks found — nothing to uninstall.")
         return
 
     hooks_obj["PostToolUse"] = post_tool
     settings["hooks"] = hooks_obj
     save_settings(settings_path, settings)
-    print(f"✓ Removed {removed} ccache hook(s) from {settings_path}")
+    print(f"✓ Removed {removed} ctxc hook(s) from {settings_path}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Install ccache hooks into Claude Code.")
+    parser = argparse.ArgumentParser(description="Install ctxc hooks into Claude Code.")
     parser.add_argument(
         "--project-dir",
         default=".",
@@ -124,7 +124,7 @@ def main():
     parser.add_argument(
         "--uninstall",
         action="store_true",
-        help="Remove ccache hooks from settings.json"
+        help="Remove ctxc hooks from settings.json"
     )
     args = parser.parse_args()
 

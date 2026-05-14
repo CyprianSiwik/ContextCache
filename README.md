@@ -1,8 +1,8 @@
-# ccache
+# ctxc
 
 > A token-efficient, self-updating project context system for Claude agents.
 
-Stop burning tokens every session reacclimating Claude to your codebase. `ccache` maintains a compressed `.ctx` snapshot of your project that Claude reads in seconds at session start — instead of re-reading dozens of files.
+Stop burning tokens every session reacclimating Claude to your codebase. `ctxc` maintains a compressed `.ctx` snapshot of your project that Claude reads in seconds at session start — instead of re-reading dozens of files.
 
 ---
 
@@ -35,7 +35,7 @@ That's it. The installer:
 - adds `CLAUDE.md` to `.gitignore` (the path is machine-specific)
 - installs Claude Code hooks for auto-updates
 
-Then invoke it any time with `/ccache` in Claude Code, or say "orient around this codebase" / "load the cache". Skip it when you're only touching one or two known files — you don't need the overhead.
+Then invoke it any time with `/ctxc` in Claude Code, or say "orient around this codebase" / "load the cache". Skip it when you're only touching one or two known files — you don't need the overhead.
 
 ---
 
@@ -103,7 +103,7 @@ Install once, updates forever. Hooks fire on every write, edit, delete, rename, 
 
 ```bash
 # From your project root (after init_cache.py)
-python path/to/ccache/scripts/install_hooks.py --project-dir .
+python path/to/ctxc/scripts/install_hooks.py --project-dir .
 
 # To uninstall
 python scripts/install_hooks.py --uninstall

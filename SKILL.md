@@ -1,8 +1,8 @@
 ---
-name: ccache
+name: ctxc
 description: >
   Persistent, compressed project context cache. Only activate when the user
-  explicitly invokes it — via /ccache, or phrases like "orient around this
+  explicitly invokes it — via /ctxc, or phrases like "orient around this
   codebase", "load the cache", "refresh context", "update the cache", "init
   cache", or "what does the cache say". Also triggers when the user asks Claude
   to remember something about the project architecture, mark a todo, or leave a
@@ -11,7 +11,7 @@ description: >
   explicit invocation.
 ---
 
-# ccache
+# ctxc
 
 A token-efficient, self-updating project context system. One `.ctx` file at the
 project root gives Claude a compressed snapshot of the codebase — invoke it when
@@ -22,7 +22,7 @@ you want Claude to orient around the full project rather than work on specific f
 Invoke this skill explicitly:
 
 ```
-/ccache
+/ctxc
 "orient around this codebase"
 "load the cache"
 ```
@@ -113,11 +113,11 @@ For the full spec (relationship operators, compression rules, §N tag meanings,
 
 ## Initializing a New Project
 
-When the user wants to set up ccache on a project:
+When the user wants to set up ctxc on a project:
 
 ```bash
 # From the project root:
-python path/to/ccache/scripts/init_cache.py .
+python path/to/ctxc/scripts/init_cache.py .
 
 # Or with options:
 python scripts/init_cache.py . --output .ctx --config .ctxconfig
@@ -198,7 +198,7 @@ This skill is designed to be published as a standalone GitHub repository.
 The recommended repo layout:
 
 ```
-ccache/
+ctxc/
 ├── SKILL.md
 ├── README.md          ← user-facing install/usage guide
 ├── scripts/

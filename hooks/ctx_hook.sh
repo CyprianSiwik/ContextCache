@@ -1,5 +1,5 @@
 #!/bin/bash
-# ctx_hook.sh — Claude Code PostToolUse hook for ccache
+# ctx_hook.sh — Claude Code PostToolUse hook for ctxc
 #
 # Receives tool event via stdin as JSON:
 #   { "tool_name": "Write", "tool_input": {...}, ... }

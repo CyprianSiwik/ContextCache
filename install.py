@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-install.py — One-shot ccache setup for a project.
+install.py — One-shot ctxc setup for a project.
 
 Usage:
     python3 /path/to/ContextCache/install.py                 # sets up current directory
@@ -26,7 +26,7 @@ def main():
         print(f"ERROR: not a directory: {project_dir}")
         sys.exit(1)
 
-    print(f"Installing ccache for: {project_dir.name}")
+    print(f"Installing ctxc for: {project_dir.name}")
     print()
 
     # ── 1. Generate .ctx ──────────────────────────────────────────────────────
@@ -81,12 +81,12 @@ def main():
 
     # ── Done ──────────────────────────────────────────────────────────────────
     print()
-    print(f"✓ ccache is ready.")
+    print(f"✓ ctxc is ready.")
     print(f"  .ctx           — project snapshot ({project_dir / '.ctx'})")
     print(f"  CLAUDE.md      — skill registered (gitignored)")
     print(f"  hooks          — auto-update on write/edit/delete/commit")
     print()
-    print("Use /ccache to orient Claude around this project.")
+    print("Use /ctxc to orient Claude around this project.")
     print("To update manually: python3 scripts/update_cache.py --event full")
 
 
