@@ -34,7 +34,7 @@ That's it. The installer:
 - registers the skill instructions in `CLAUDE.md`
 - adds `CLAUDE.md` to `.gitignore` (the path is machine-specific)
 - installs Claude Code hooks for auto-updates
-- symlinks `SKILL.md` into `~/.claude/skills/ctxc.md` so `/ctxc` works as a slash command
+- symlinks `SKILL.md` into `~/.claude/commands/ctxc.md` so `/ctxc` works as a slash command
 
 Then invoke it any time with `/ctxc` in Claude Code, or say "orient around this codebase" / "load the cache". Skip it when you're only touching one or two known files — you don't need the overhead.
 
@@ -175,11 +175,11 @@ The recommended approach is to run `install.py` — it handles everything in one
 **Step 1 — Register the `/ctxc` slash command** (once per machine):
 
 ```bash
-mkdir -p ~/.claude/skills
-ln -sf /path/to/ContextCache/SKILL.md ~/.claude/skills/ctxc.md
+mkdir -p ~/.claude/commands
+ln -sf /path/to/ContextCache/SKILL.md ~/.claude/commands/ctxc.md
 ```
 
-This symlink is machine-specific. Each teammate runs this once after cloning. Claude Code picks up `~/.claude/skills/` automatically, so `/ctxc` becomes available in every project.
+This symlink is machine-specific. Each teammate runs this once after cloning. Claude Code picks up `~/.claude/commands/` automatically, so `/ctxc` becomes available in every project.
 
 **Step 2 — Register the skill instructions in your project** (once per project):
 

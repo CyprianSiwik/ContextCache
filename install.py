@@ -81,26 +81,25 @@ def main():
     if result.returncode != 0:
         print("     WARNING: hook install failed. Run scripts/install_hooks.py manually.")
 
-    # ── 5. Register /ctxc slash command in ~/.claude/skills/ ──────────────────
-    print("5/5  Registering /ctxc in ~/.claude/skills/...")
-    skills_dir = Path.home() / ".claude" / "skills"
-    skills_dir.mkdir(parents=True, exist_ok=True)
-    skill_link = skills_dir / "ctxc.md"
+    # ── 5. Register /ctxc slash command in ~/.claude/commands/ ───────────────
+    print("5/5  Registering /ctxc in ~/.claude/commands/...")
+    commands_dir = Path.home() / ".claude" / "commands"
+    commands_dir.mkdir(parents=True, exist_ok=True)
+    skill_link = commands_dir / "ctxc.md"
     skill_src  = cache_root / "SKILL.md"
 
     if skill_link.exists() or skill_link.is_symlink():
         skill_link.unlink()
 
-    shutil.copy2(skill_src, skill_link)
-    skill_link.chmod(0o600)
-    print(f"     Copied: {skill_src} -> {skill_link}")
+    skill_link.symlink_to(skill_src)
+    print(f"     Symlinked: {skill_src} -> {skill_link}")
 
     # ── Done ──────────────────────────────────────────────────────────────────
     print()
     print(f"✓ ctxc is ready.")
     print(f"  .ctx           — project snapshot ({project_dir / '.ctx'})")
     print(f"  CLAUDE.md      — skill instructions (gitignored)")
-    print(f"  ~/.claude/skills/ctxc.md — /ctxc slash command registered")
+    print(f"  ~/.claude/commands/ctxc.md — /ctxc slash command registered")
     print(f"  hooks          — auto-update on write/edit/delete/commit")
     print()
     print("Use /ctxc to orient Claude around this project.")
