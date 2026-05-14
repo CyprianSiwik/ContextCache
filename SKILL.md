@@ -188,7 +188,6 @@ Keep this in mind when deciding what to cache:
   from code structure alone. Encourage the user to add notes after important
   architectural decisions.
 
-If the `.ctx` grows beyond ~150 lines, run `--event full` to re-compact.
 
 ---
 

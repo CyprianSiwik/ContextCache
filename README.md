@@ -217,7 +217,6 @@ Target: describe your whole project in under **950 tokens**.
 - Truncate long export lists (the `+N` syntax: `ex:foo,bar,baz+12`)
 - Notes (`§N`) are the highest-value entries — they carry knowledge that can't be inferred from code
 
-If `.ctx` exceeds ~150 lines, run `--event full` to recompact.
 
 ---
 
