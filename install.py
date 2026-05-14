@@ -89,19 +89,11 @@ def main():
     skill_src  = cache_root / "SKILL.md"
 
     if skill_link.exists() or skill_link.is_symlink():
-        try:
-            already = skill_link.is_symlink() and skill_link.resolve() == skill_src.resolve()
-        except Exception:
-            already = False
-        if already:
-            print("     Already registered — skipping.")
-        else:
-            skill_link.unlink()
-            skill_link.symlink_to(skill_src)
-            print(f"     Updated: {skill_link} -> {skill_src}")
-    else:
-        skill_link.symlink_to(skill_src)
-        print(f"     Created: {skill_link} -> {skill_src}")
+        skill_link.unlink()
+
+    shutil.copy2(skill_src, skill_link)
+    skill_link.chmod(0o600)
+    print(f"     Copied: {skill_src} -> {skill_link}")
 
     # ── Done ──────────────────────────────────────────────────────────────────
     print()
