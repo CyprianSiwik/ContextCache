@@ -16,6 +16,8 @@ What it does:
 import sys
 import subprocess
 from pathlib import Path
+import json
+import shutil
 
 
 def main():
@@ -71,7 +73,7 @@ def main():
         print("     Created .gitignore.")
 
     # ── 4. Install hooks ──────────────────────────────────────────────────────
-    print("4/4  Installing Claude Code hooks...")
+    print("4/5  Installing Claude Code hooks...")
     result = subprocess.run(
         [sys.executable, str(cache_root / "scripts" / "install_hooks.py"),
          "--project-dir", str(project_dir)]
@@ -79,11 +81,34 @@ def main():
     if result.returncode != 0:
         print("     WARNING: hook install failed. Run scripts/install_hooks.py manually.")
 
+    # ── 5. Register /ctxc slash command in ~/.claude/skills/ ──────────────────
+    print("5/5  Registering /ctxc in ~/.claude/skills/...")
+    skills_dir = Path.home() / ".claude" / "skills"
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    skill_link = skills_dir / "ctxc.md"
+    skill_src  = cache_root / "SKILL.md"
+
+    if skill_link.exists() or skill_link.is_symlink():
+        try:
+            already = skill_link.is_symlink() and skill_link.resolve() == skill_src.resolve()
+        except Exception:
+            already = False
+        if already:
+            print("     Already registered — skipping.")
+        else:
+            skill_link.unlink()
+            skill_link.symlink_to(skill_src)
+            print(f"     Updated: {skill_link} -> {skill_src}")
+    else:
+        skill_link.symlink_to(skill_src)
+        print(f"     Created: {skill_link} -> {skill_src}")
+
     # ── Done ──────────────────────────────────────────────────────────────────
     print()
     print(f"✓ ctxc is ready.")
     print(f"  .ctx           — project snapshot ({project_dir / '.ctx'})")
-    print(f"  CLAUDE.md      — skill registered (gitignored)")
+    print(f"  CLAUDE.md      — skill instructions (gitignored)")
+    print(f"  ~/.claude/skills/ctxc.md — /ctxc slash command registered")
     print(f"  hooks          — auto-update on write/edit/delete/commit")
     print()
     print("Use /ctxc to orient Claude around this project.")

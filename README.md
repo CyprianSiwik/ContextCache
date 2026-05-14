@@ -31,9 +31,10 @@ python3 /path/to/ContextCache/install.py
 
 That's it. The installer:
 - generates the `.ctx` snapshot
-- registers the skill in `CLAUDE.md`
+- registers the skill instructions in `CLAUDE.md`
 - adds `CLAUDE.md` to `.gitignore` (the path is machine-specific)
 - installs Claude Code hooks for auto-updates
+- symlinks `SKILL.md` into `~/.claude/skills/ctxc.md` so `/ctxc` works as a slash command
 
 Then invoke it any time with `/ctxc` in Claude Code, or say "orient around this codebase" / "load the cache". Skip it when you're only touching one or two known files — you don't need the overhead.
 
@@ -169,26 +170,25 @@ All fields are optional. Without a config, the scanner uses sensible defaults an
 
 ## Using as a Claude Skill
 
-After cloning, register the skill in your project's `CLAUDE.md`:
+The recommended approach is to run `install.py` — it handles everything in one shot. If you want to do it manually:
+
+**Step 1 — Register the `/ctxc` slash command** (once per machine):
 
 ```bash
-# From your project root:
+mkdir -p ~/.claude/skills
+ln -sf /path/to/ContextCache/SKILL.md ~/.claude/skills/ctxc.md
+```
+
+This symlink is machine-specific. Each teammate runs this once after cloning. Claude Code picks up `~/.claude/skills/` automatically, so `/ctxc` becomes available in every project.
+
+**Step 2 — Register the skill instructions in your project** (once per project):
+
+```bash
 echo "@/path/to/ContextCache/SKILL.md" >> CLAUDE.md
-```
-
-Replace `/path/to/ContextCache` with wherever you cloned this repo. For example:
-
-```
-@/Users/yourname/tools/ContextCache/SKILL.md
-```
-
-Then add `CLAUDE.md` to your `.gitignore` — the path is machine-specific and will break for collaborators:
-
-```
 echo "CLAUDE.md" >> .gitignore
 ```
 
-Once registered, use `/ctxc` to orient Claude around the project. Claude will update `.ctx` after file operations and add notes when it learns something worth preserving. Each teammate registers their own local path.
+The `CLAUDE.md` `@`-import loads the skill's behavioral instructions into Claude's context. The `~/.claude/skills/` symlink is what makes `/ctxc` work as a slash command — you need both.
 
 ---
 
