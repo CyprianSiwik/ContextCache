@@ -1,8 +1,8 @@
-# ctxc
+# ContextCache
 
 > A token-efficient, self-updating project context system for Claude agents.
 
-Stop burning tokens every session reacclimating Claude to your codebase. `ctxc` maintains a compressed `.ctx` snapshot of your project that Claude reads in seconds at session start — instead of re-reading dozens of files.
+Stop burning tokens every session reacclimating Claude to your codebase. ContextCache maintains a compressed `.ctx` snapshot of your project that Claude reads in seconds — instead of re-reading dozens of files.
 
 ---
 
@@ -188,7 +188,7 @@ Then add `CLAUDE.md` to your `.gitignore` — the path is machine-specific and w
 echo "CLAUDE.md" >> .gitignore
 ```
 
-Once registered, Claude will automatically read `.ctx` at session start, update it after file operations, and add notes when it learns something worth preserving. Each teammate registers their own local path.
+Once registered, use `/ctxc` to orient Claude around the project. Claude will update `.ctx` after file operations and add notes when it learns something worth preserving. Each teammate registers their own local path.
 
 ---
 
