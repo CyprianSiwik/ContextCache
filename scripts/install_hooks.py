@@ -36,9 +36,16 @@ def save_settings(path: Path, settings: dict):
         shutil.copy(path, path.with_suffix(".json.bak"))
     path.write_text(json.dumps(settings, indent=2))
 
-def is_ctx_matcher(matcher: dict, hook_script: Path) -> bool:
+def is_ctx_matcher(matcher: dict, hook_script: Path, project_dir: Path = None) -> bool:
     script_str = str(hook_script)
-    return any(script_str in h.get("command", "") for h in matcher.get("hooks", []))
+    project_str = str(project_dir) if project_dir is not None else None
+    for h in matcher.get("hooks", []):
+        command = h.get("command", "")
+        if script_str not in command:
+            continue
+        if project_str is None or project_str in command:
+            return True
+    return False
 
 def build_hook_matchers(hook_script: Path, project_dir: Path) -> list:
     """
@@ -69,7 +76,7 @@ def install(project_dir: Path):
     post_tool  = hooks_obj.setdefault("PostToolUse", [])
 
     # Remove existing ctxc matchers for this project (clean reinstall)
-    post_tool[:] = [m for m in post_tool if not is_ctx_matcher(m, hook_script)]
+    post_tool[:] = [m for m in post_tool if not is_ctx_matcher(m, hook_script, project_dir)]
 
     new_matchers = build_hook_matchers(hook_script, project_dir)
     post_tool.extend(new_matchers)
