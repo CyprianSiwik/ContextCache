@@ -11,6 +11,7 @@ What it does:
     2. Registers the skill in CLAUDE.md
     3. Adds CLAUDE.md to .gitignore
     4. Installs Claude Code auto-update hooks
+    5. Registers the /ctxc slash command in ~/.claude/commands/
 """
 
 import sys
@@ -32,7 +33,7 @@ def main():
     print()
 
     # ── 1. Generate .ctx ──────────────────────────────────────────────────────
-    print("1/4  Generating .ctx cache...")
+    print("1/5  Generating .ctx cache...")
     result = subprocess.run(
         [sys.executable, str(cache_root / "scripts" / "init_cache.py"), str(project_dir)]
     )
@@ -41,7 +42,7 @@ def main():
         sys.exit(1)
 
     # ── 2. Register skill in CLAUDE.md ────────────────────────────────────────
-    print("2/4  Registering skill in CLAUDE.md...")
+    print("2/5  Registering skill in CLAUDE.md...")
     skill_path = cache_root / "SKILL.md"
     skill_line = f"@{skill_path}\n"
     claude_md  = project_dir / "CLAUDE.md"
@@ -58,7 +59,7 @@ def main():
         print(f"     Created {claude_md}")
 
     # ── 3. Gitignore CLAUDE.md ────────────────────────────────────────────────
-    print("3/4  Adding CLAUDE.md to .gitignore...")
+    print("3/5  Adding CLAUDE.md to .gitignore...")
     gitignore = project_dir / ".gitignore"
 
     if gitignore.exists():
