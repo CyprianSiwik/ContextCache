@@ -55,7 +55,9 @@ def extract_file_block(content: str, rel_path: str) -> tuple:
     or end of string.
     """
     escaped = re.escape(rel_path)
-    pattern = re.compile(rf"§F\np {escaped}[^\n]*(?:\n  [^\n]*)*", re.MULTILINE)
+    # (?=\s|$) stops "src/a.ts" from matching inside "src/a.tsx" — a path must be
+    # followed by whitespace or end-of-line, not just any non-newline text.
+    pattern = re.compile(rf"§F\np {escaped}(?=\s|$)[^\n]*(?:\n  [^\n]*)*", re.MULTILINE)
     m = pattern.search(content)
     if not m:
         return -1, -1
@@ -86,7 +88,10 @@ def remove_from_dir_block(content: str, rel_path: str) -> str:
     if not m:
         return content
 
-    new_lines = re.sub(rf"  {escaped_file}[^\n]*\n", "", m.group(1))
+    # (?=[ *]|$) stops "utils.ts" from also eating "utils.tsx" — a dir-block entry's
+    # filename is always followed by a space (T3 hint) or "*" (T2 marker), never by
+    # more filename characters.
+    new_lines = re.sub(rf"^  {escaped_file}(?=[ *]|$)[^\n]*\n", "", m.group(1), flags=re.MULTILINE)
 
     if not new_lines.strip():
         content = content[:m.start()] + content[m.end():]
