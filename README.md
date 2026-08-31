@@ -264,6 +264,22 @@ Suggested `.gitignore` entry if going local-only:
 
 ---
 
+## Development
+
+The tool itself is stdlib-only; `pytest` is a dev-only dependency for running tests.
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -v
+```
+
+Tests cover the per-language analyzers (`analyze_python`, `analyze_js_ts`),
+`update_cache.py`'s incremental event handling — including regression tests
+for filename-prefix collisions that used to corrupt the cache — and
+`install_hooks.py`'s multi-project isolation. CI runs the suite on every push.
+
+---
+
 ## License
 
 MIT
