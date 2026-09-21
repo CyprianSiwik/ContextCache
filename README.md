@@ -263,8 +263,11 @@ A small pytest suite lives in `tests/`, covering the file-skip logic
 artifacts, lockfiles, and test files from the cache.
 
 ```bash
-pip install pytest
+pip install -r requirements-dev.txt
 pytest tests/
+
+# with a coverage report
+pytest --cov=scripts --cov-report=term-missing tests/
 ```
 
 ## Requirements
@@ -272,7 +275,7 @@ pytest tests/
 - Python 3.8+
 - No external dependencies (stdlib only)
 - Git optional (used for `§G` blocks only)
-- `pytest` optional (dev-only, for running `tests/`)
+- `pytest` + `pytest-cov` optional (dev-only, see `requirements-dev.txt`)
 
 ---
 
