@@ -256,11 +256,23 @@ Suggested `.gitignore` entry if going local-only:
 
 ---
 
+## Testing
+
+A small pytest suite lives in `tests/`, covering the file-skip logic
+(`should_skip()` in `scripts/init_cache.py`) used to exclude build
+artifacts, lockfiles, and test files from the cache.
+
+```bash
+pip install pytest
+pytest tests/
+```
+
 ## Requirements
 
 - Python 3.8+
 - No external dependencies (stdlib only)
 - Git optional (used for `§G` blocks only)
+- `pytest` optional (dev-only, for running `tests/`)
 
 ---
 
